@@ -1,4 +1,4 @@
-package com.booksapp
+package com.books.app
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
