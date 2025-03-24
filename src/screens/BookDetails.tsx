@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Image, ScrollView, Dimensions, Animated, TouchableOpacity, Button } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, Dimensions, Animated, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Colors } from '../constants/Colors';
 import { Book, fetchDetailsCarousel } from '../services/remoteConfigService';
@@ -22,7 +22,6 @@ const BookDetails: React.FC<{ route: { params: { book: Book, youWillLike: number
     [carouselBooks, activeIndex, book]);
 
     const youWillLikeBooks = useMemo(() => {
-        console.log(youWillLike);
         return carouselBooks.filter((item: Book) => youWillLike?.includes(item.id));
     }, [carouselBooks, youWillLike]);
 

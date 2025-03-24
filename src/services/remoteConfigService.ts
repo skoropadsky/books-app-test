@@ -69,8 +69,6 @@ export const fetchDetailsCarousel = async (): Promise<RemoteCarousel> => {
         const jsonData = remoteConfig().getValue('details_carousel').asString();
         const parsedData = JSON.parse(jsonData);
 
-        console.log(parsedData);
-
         return {
             books: parsedData.books || [],
         };
