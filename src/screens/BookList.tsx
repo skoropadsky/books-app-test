@@ -1,32 +1,23 @@
-import { StyleSheet, Text, View, FlatList, Image } from 'react-native';
-import React, { useMemo } from 'react';
+import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Colors } from '../constants/Colors';
 import Banners from '../components/Banners';
+import { fetchRemoteData, Book, Slide } from '../services/remoteConfigService';
 
-interface Slide {
-  id: number;
-  book_id: string;
-  cover: string;
-}
+const BookList: React.FC<{ navigation: any }> = ({ navigation }) => {
+    const [slides, setSlides] = useState<Slide[]>([]);
+    const [books, setBooks] = useState<Book[]>([]);
 
-interface Book {
-  id: number;
-  author: string;
-  cover_url: string;
-  genre: string;
-  likes: string;
-  name: string;
-  quotes: string;
-  summary: string;
-  views: string;
-}
+    useEffect(() => {
+      const loadData = async () => {
+        const { slides: slidesData, books: booksData } = await fetchRemoteData();
+        setSlides(slidesData);
+        setBooks(booksData);
+      };
 
-interface BookListProps {
-  slides: Slide[];
-  books: Book[];
-}
+      loadData();
+    }, []);
 
-const BookList: React.FC<BookListProps> = ({ slides, books }) => {
     const booksByGenre = useMemo(() => books.reduce((acc: Record<string, Book[]>, book: Book) => {
         if (!acc[book.genre]) {
             acc[book.genre] = [];
@@ -36,7 +27,10 @@ const BookList: React.FC<BookListProps> = ({ slides, books }) => {
     }, {}), [books]);
 
     const renderBook = ({ item }: { item: Book }) => (
-        <View style={styles.bookItem}>
+        <TouchableOpacity
+            style={styles.bookItem}
+            onPress={() => navigation.navigate('BookDetails', { book: item })}
+        >
             <Image
                 source={{ uri: item.cover_url }}
                 style={styles.bookCover}
@@ -44,7 +38,7 @@ const BookList: React.FC<BookListProps> = ({ slides, books }) => {
             />
             <Text style={styles.bookTitle} numberOfLines={2}>{item.name}</Text>
             <Text style={styles.bookAuthor} numberOfLines={1}>{item.author}</Text>
-        </View>
+        </TouchableOpacity>
     );
 
     const renderGenre = (genre: string) => {
@@ -65,8 +59,11 @@ const BookList: React.FC<BookListProps> = ({ slides, books }) => {
 
     return (
         <View style={styles.container}>
-            <Banners slides={slides} />
+            <View style={styles.header}>
+                <Text style={styles.title}>Library</Text>
+            </View>
             <FlatList
+                ListHeaderComponent={<Banners slides={slides} />}
                 data={Object.keys(booksByGenre)}
                 renderItem={({ item }) => renderGenre(item)}
                 keyExtractor={(item) => item}
@@ -78,6 +75,16 @@ const BookList: React.FC<BookListProps> = ({ slides, books }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    header: {
+        padding: 16,
+    },
+    title: {
+        color: Colors.primary,
+        fontFamily: 'Nunito Sans',
+        fontSize: 20,
+        lineHeight: 22,
+        fontWeight: 'bold',
     },
     genreSection: {
         marginVertical: 16,

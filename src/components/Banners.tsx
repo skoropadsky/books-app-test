@@ -32,7 +32,7 @@ const Banners: React.FC<BannersProps> = ({ slides }) => {
     }, [activeSlide, slides.length]);
 
     const renderSlide = ({ item }: { item: Slide }) => (
-        <View style={styles.slideContainer}>
+        <View key={item.id} style={styles.slideContainer}>
             <Image
                 source={{ uri: item.cover }}
                 style={styles.slideImage}
