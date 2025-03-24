@@ -1,16 +1,16 @@
-import { StyleSheet, Text, View, Image, ScrollView, Dimensions, Animated } from 'react-native';
+import { StyleSheet, Text, View, Image, ScrollView, Dimensions, Animated, TouchableOpacity, Button } from 'react-native';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Colors } from '../constants/Colors';
 import { Book, fetchDetailsCarousel } from '../services/remoteConfigService';
 import Carousel from 'react-native-snap-carousel';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const SLIDER_WIDTH = Dimensions.get('window').width;
 const ITEM_WIDTH = 200;
-const BOTTOM_SHEET_HEIGHT = Dimensions.get('window').height - 400;
+const BOTTOM_SHEET_HEIGHT = Dimensions.get('window').height - 420;
 
-const BookDetails: React.FC<{ route: { params: { book: Book } } }> = ({ route }) => {
-    const { book } = route.params;
+const BookDetails: React.FC<{ route: { params: { book: Book, youWillLike: number[] } } }> = ({ route }) => {
+    const { book, youWillLike } = route.params;
     const [carouselBooks, setCarouselBooks] = useState<Book[]>([]);
     const [activeIndex, setActiveIndex] = useState(0);
     const carouselRef = useRef<any>(null);
@@ -21,13 +21,29 @@ const BookDetails: React.FC<{ route: { params: { book: Book } } }> = ({ route })
         carouselBooks[activeIndex] || book,
     [carouselBooks, activeIndex, book]);
 
+    const youWillLikeBooks = useMemo(() => {
+        console.log(youWillLike);
+        return carouselBooks.filter((item: Book) => youWillLike?.includes(item.id));
+    }, [carouselBooks, youWillLike]);
+
     useEffect(() => {
         fetchDetailsCarousel().then(({ books }: { books: Book[] }) => {
             if (books.length > 0) {
+                // Find the index of the book from props
+                const initialIndex = books.findIndex(b => b.id === book.id);
                 setCarouselBooks(books);
+
+                // If book is found, set the initial index and scroll to it
+                if (initialIndex !== -1) {
+                    setActiveIndex(initialIndex);
+                    // Wait for carousel to be ready before scrolling
+                    setTimeout(() => {
+                        carouselRef.current?.snapToItem(initialIndex);
+                    }, 100);
+                }
             }
         });
-    }, []);
+    }, [book.id]);
 
     const renderCarouselItem = ({ item }: { item: Book }) => (
         <View style={styles.carouselItem}>
@@ -79,6 +95,33 @@ const BookDetails: React.FC<{ route: { params: { book: Book } } }> = ({ route })
                         <Text style={styles.sectionTitle}>Summary</Text>
                         <Text style={styles.summary}>{currentBook.summary}</Text>
                     </View>
+
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>You will also like</Text>
+
+                        <FlatList
+                            data={youWillLikeBooks}
+                            renderItem={({ item }: { item: Book }) => (
+                                <TouchableOpacity
+                                    style={styles.bookItem}
+                                    onPress={() => { setActiveIndex(item.id); carouselRef.current?.snapToItem(item.id); }}
+                                >
+                                    <Image
+                                        source={{ uri: item.cover_url }}
+                                        style={styles.bookCover}
+                                        resizeMode="cover"
+                                    />
+                                    <Text style={styles.bookLikeTitle} numberOfLines={2}>{item.name}</Text>
+                                </TouchableOpacity>
+                            )}
+                            keyExtractor={(item: Book) => item.id.toString()}
+                            horizontal={true}
+                            showsHorizontalScrollIndicator={false}
+                        />
+                    </View>
+                    <TouchableOpacity style={styles.readNowButton} onPress={() => ({})} >
+                        <Text style={styles.readNowButtonText}>Read now</Text>
+                    </TouchableOpacity>
                 </ScrollView>
             </View>
         </Animated.View>
@@ -210,6 +253,34 @@ const styles = StyleSheet.create({
     },
     section: {
         marginBottom: 24,
+    },
+    bookItem: {
+        marginRight: 16,
+        width: 120,
+    },
+    bookLikeTitle: {
+        color: Colors.textBlack,
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    bookCover: {
+        width: 120,
+        height: 150,
+        borderRadius: 16,
+        marginBottom: 8,
+    },
+    readNowButton: {
+        marginBottom: 24,
+        backgroundColor: Colors.primary,
+        borderRadius: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+    },
+    readNowButtonText: {
+        textAlign: 'center',
+        color: Colors.white,
+        fontSize: 16,
+        fontWeight: '500',
     },
 });
 

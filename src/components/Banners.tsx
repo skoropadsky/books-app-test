@@ -1,7 +1,8 @@
-import { StyleSheet, View, Image, Dimensions } from 'react-native';
+import { StyleSheet, View, Image, Dimensions, TouchableOpacity } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import Carousel from 'react-native-snap-carousel';
 import { Colors } from '../constants/Colors';
+import { useNavigation } from '@react-navigation/native';
 
 interface Slide {
     id: number;
@@ -19,6 +20,7 @@ const ITEM_WIDTH = SLIDER_WIDTH;
 const Banners: React.FC<BannersProps> = ({ slides }) => {
     const carouselRef = useRef<any>(null);
     const [activeSlide, setActiveSlide] = useState(0);
+    const navigation = useNavigation();
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -32,13 +34,13 @@ const Banners: React.FC<BannersProps> = ({ slides }) => {
     }, [activeSlide, slides.length]);
 
     const renderSlide = ({ item }: { item: Slide }) => (
-        <View key={item.id} style={styles.slideContainer}>
+        <TouchableOpacity key={item.id} style={styles.slideContainer} onPress={() => navigation.navigate('BookDetails', { book: { id: item.book_id } })}>
             <Image
                 source={{ uri: item.cover }}
                 style={styles.slideImage}
                 resizeMode="cover"
             />
-        </View>
+        </TouchableOpacity>
     );
 
     const renderPagination = () => {

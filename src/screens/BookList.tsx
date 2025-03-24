@@ -7,12 +7,14 @@ import { fetchRemoteData, Book, Slide } from '../services/remoteConfigService';
 const BookList: React.FC<{ navigation: any }> = ({ navigation }) => {
     const [slides, setSlides] = useState<Slide[]>([]);
     const [books, setBooks] = useState<Book[]>([]);
+    const [youWillLike, setYouWillLike] = useState<number[]>([]);
 
     useEffect(() => {
       const loadData = async () => {
-        const { slides: slidesData, books: booksData } = await fetchRemoteData();
+        const { slides: slidesData, books: booksData, youWillLike: youWillLikeData } = await fetchRemoteData();
         setSlides(slidesData);
         setBooks(booksData);
+        setYouWillLike(youWillLikeData);
       };
 
       loadData();
@@ -29,7 +31,7 @@ const BookList: React.FC<{ navigation: any }> = ({ navigation }) => {
     const renderBook = ({ item }: { item: Book }) => (
         <TouchableOpacity
             style={styles.bookItem}
-            onPress={() => navigation.navigate('BookDetails', { book: item })}
+            onPress={() => navigation.navigate('BookDetails', { book: item, youWillLike: youWillLike })}
         >
             <Image
                 source={{ uri: item.cover_url }}
